@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swipe Photo</title>
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --panel: #151517;
+    --line: #2a2a2e;
+    --text: #ececef;
+    --muted: #8b8b93;
+    --accent: #3ddc84;
+    --warn: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  [hidden] { display: none !important; }
+  kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--panel); font: 12px ui-monospace, Menlo, monospace; text-align: center; color: var(--text); }
+
+  /* Setup */
+  #setup { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; }
+  #setup form { width: min(580px, 100%); display: grid; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .sub { margin: -8px 0 6px; color: var(--muted); }
+  label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+  input[type=text] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 13px ui-monospace, Menlo, monospace; }
+  input[type=text]:focus { outline: none; border-color: var(--accent); }
+  label.check { display: flex; align-items: center; gap: 8px; color: var(--text); }
+  button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--accent); color: #05210f; font-weight: 600; font-size: 14px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: progress; }
+  #error { color: var(--warn); min-height: 1.4em; margin: 0; white-space: pre-wrap; }
+  .keys { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; }
+
+  /* Viewer */
+  #viewer { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  #bar { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+  #homeBtn { padding: 4px 10px; background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 12px; }
+  #homeBtn:hover { color: var(--text); border-color: var(--muted); }
+  #counter { font-variant-numeric: tabular-nums; font-weight: 600; }
+  #name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  #stats { font-variant-numeric: tabular-nums; color: var(--muted); }
+  #stats b { color: var(--text); font-weight: 600; }
+  #track { height: 2px; background: var(--line); }
+  #progress { height: 100%; width: 0; background: var(--accent); }
+  #main { flex: 1; min-height: 0; display: flex; }
+  #stage { position: relative; flex: 1; min-width: 0; min-height: 0; }
+
+  /* Strip vertikal: foto sebelum & sesudah */
+  #strip { position: relative; flex: none; width: 184px; overflow: hidden; background: var(--panel); border-right: 1px solid var(--line); }
+  #stripInner { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+  .t { position: relative; flex: none; height: 108px; border-radius: 8px; overflow: hidden; background: #111; box-shadow: 0 0 0 1px var(--line); }
+  .t img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .t.past { opacity: .5; }
+  .t.cur { opacity: 1; box-shadow: 0 0 0 2px var(--accent); }
+  .t .n { position: absolute; left: 6px; bottom: 5px; padding: 1px 6px; border-radius: 4px; background: rgba(0, 0, 0, .65); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .t .st { position: absolute; right: 6px; top: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .t .st:empty { display: none; }
+  .t.good .st { background: var(--accent); color: #05210f; }
+  .t.bad .st { background: var(--warn); color: #2a0606; }
+  .t.kept .st { background: #3a3a40; color: var(--text); }
+  .t .fn { display: none; position: absolute; inset: 0; padding: 30px 8px 8px; font: 11px ui-monospace, Menlo, monospace; color: var(--muted); word-break: break-all; }
+  .t.broken img { visibility: hidden; }
+  .t.broken .fn { display: block; }
+  @media (max-width: 700px) { #strip { display: none; } }
+  #stage { overflow: hidden; background: radial-gradient(ellipse at center, #1a1a1e 0%, var(--bg) 75%); }
+  #frame { position: absolute; inset: 28px; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; }
+  #photo, .ghost {
+    grid-area: 1 / 1;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    background: #111;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .09), 0 2px 6px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .55);
+  }
+  .ghost { z-index: 2; pointer-events: none; will-change: transform, opacity; }
+  @media (max-width: 600px) { #frame { inset: 12px; } }
+  #badge { position: absolute; z-index: 3; top: 18px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; font-weight: 600; opacity: 0; pointer-events: none; }
+  #badge.good { background: var(--accent); color: #05210f; }
+  #badge.bad { background: var(--warn); color: #2a0606; }
+  #badge.keep { background: #3a3a40; color: var(--text); }
+  #badge.undo { background: #f5c451; color: #2a1d00; }
+  #done { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; background: var(--bg); }
+  #done p { margin: 6px 0; color: var(--muted); }
+  #done strong { display: block; font-size: 20px; color: var(--text); margin-bottom: 6px; }
+  #foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; padding: 8px 14px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  #foot button { padding: 4px 10px; background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 12px; }
+  #foot button:hover { color: var(--text); border-color: var(--muted); }
+  .dst { color: var(--text); font-family: ui-monospace, Menlo, monospace; }
+  #toast { position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); background: #3a1414; color: #ffd7d7; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+  #toast.info { background: #1e2a22; color: #c8f2d6; }
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <form id="form" autocomplete="off">
+    <h1>Swipe Photo</h1>
+    <p class="sub">Sortir foto cepat pakai keyboard.</p>
+    <label>Folder sumber (berisi foto)
+      <input type="text" id="src" placeholder="/Users/a/Pictures/Import" required>
+    </label>
+    <label>Folder foto bagus (<kbd>→</kbd> dipindah ke sini)
+      <input type="text" id="goodInput" placeholder="/Users/a/Pictures/Bagus" required>
+    </label>
+    <label>Folder foto jelek (<kbd>←</kbd> dipindah ke sini)
+      <input type="text" id="badInput" placeholder="/Users/a/Pictures/Jelek" required>
+    </label>
+    <label class="check"><input type="checkbox" id="recursive" checked> Ikut scan subfolder</label>
+    <button id="startBtn">Mulai</button>
+    <p id="error"></p>
+    <div class="keys">
+      <span><kbd>→</kbd> bagus</span>
+      <span><kbd>←</kbd> jelek</span>
+      <span><kbd>↓</kbd> lewati</span>
+      <span><kbd>↑</kbd> / <kbd>⌘Z</kbd> undo</span>
+      <span><kbd>Esc</kbd> ganti folder</span>
+    </div>
+  </form>
+</section>
+
+<section id="viewer" hidden>
+  <div id="bar">
+    <button id="homeBtn" type="button" title="Kembali ke beranda (Esc)">⌂ Beranda</button>
+    <span id="counter"></span>
+    <span id="name"></span>
+    <span id="stats"></span>
+  </div>
+  <div id="track"><div id="progress"></div></div>
+  <div id="main">
+  <aside id="strip"><div id="stripInner"></div></aside>
+  <div id="stage">
+    <div id="frame"><img id="photo" alt="" fetchpriority="high" decoding="async"></div>
+    <div id="badge"></div>
+    <div id="done" hidden>
+      <div>
+        <strong id="doneTitle"></strong>
+        <p id="doneText"></p>
+        <p><kbd>↑</kbd> undo &nbsp; <kbd>Esc</kbd> ganti folder</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div id="foot">
+    <button data-act="bad">← Jelek</button>
+    <button data-act="skip">↓ Lewati</button>
+    <button data-act="good">Bagus →</button>
+    <button data-act="undo">↑ Undo</button>
+    <span>Bagus: <span class="dst" id="dstGood"></span></span>
+    <span>Jelek: <span class="dst" id="dstBad"></span></span>
+  </div>
+</section>
+
+<div id="toast" hidden></div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const PRELOAD_AHEAD = 6;
+const cache = new Map(); // url -> Image (preload + decode di background)
+let S = null;            // state sesi
+
+function storage(key, value) {
+  try {
+    if (value === undefined) return localStorage.getItem(key);
+    localStorage.setItem(key, value);
+  } catch { return null; }
+}
+
+async function api(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+let toastTimer;
+function toast(msg, kind = 'error') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = kind;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
+}
+
+function flash(text, cls) {
+  const b = $('badge');
+  b.textContent = text;
+  b.className = cls;
+  b.animate([{ opacity: 1 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], { duration: 500, easing: 'ease-out' });
+}
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SLIDE_MS = 240;
+// Arah lempar foto per status: bagus ke kanan, jelek ke kiri, dilewati ke bawah.
+const OUT = {
+  good: 'translateX(60%) rotate(8deg)',
+  bad: 'translateX(-60%) rotate(-8deg)',
+  kept: 'translateY(40%) scale(.9)',
+};
+const LABEL = { good: '→ bagus', bad: '← jelek', kept: '↓ dilewati' };
+
+// Foto saat ini dilempar keluar sesuai statusnya lewat salinan,
+// jadi foto berikutnya bisa langsung tampil tanpa menunggu animasi selesai.
+function slideOut(status) {
+  const photo = $('photo');
+  if (reduceMotion || !photo.getAttribute('src')) return;
+  const ghost = photo.cloneNode();
+  ghost.removeAttribute('id');
+  ghost.className = 'ghost';
+  $('frame').append(ghost);
+  const ghosts = $('frame').querySelectorAll('.ghost');
+  if (ghosts.length > 3) ghosts[0].remove(); // tombol ditahan: batasi jumlah salinan
+  ghost.animate(
+    [{ transform: 'none', opacity: 1 }, { transform: OUT[status], opacity: 0 }],
+    { duration: SLIDE_MS, easing: 'cubic-bezier(.4,0,1,1)' }
+  ).onfinish = () => ghost.remove();
+}
+
+function enter(from) {
+  const photo = $('photo');
+  if (reduceMotion) return;
+  photo.getAnimations().forEach((a) => a.cancel());
+  photo.animate([from, { transform: 'none', opacity: 1 }], { duration: SLIDE_MS, easing: 'cubic-bezier(0,0,.2,1)' });
+}
+
+// ---------- Posisi terakhir (bertahan setelah reload) ----------
+// Disimpan per folder sumber sebagai nama file, bukan nomor urut: foto yang sudah
+// dipindah hilang dari daftar, jadi nomor urutnya bergeser setelah scan ulang.
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+const lastKey = (src) => `sp.last:${src}`;
+
+function resumeIndex(files, last) {
+  if (!last) return 0;
+  const exact = files.indexOf(last);
+  if (exact >= 0) return exact;
+  // Foto terakhir sudah dipindah: lanjut ke foto pertama sesudahnya (urutan sama dengan server)
+  const next = files.findIndex((f) => collator.compare(f, last) > 0);
+  return next >= 0 ? next : files.length;
+}
+
+const imgUrl = (i) => `/img?s=${S.id}&f=${encodeURIComponent(S.files[i].f)}`;
+const thumbUrl = (i) => `/thumb?s=${S.id}&f=${encodeURIComponent(S.files[i].f)}`;
+
+// ---------- Strip vertikal (sebelum / sesudah) ----------
+const STRIP_BEFORE = 6;
+const STRIP_AFTER = 8;
+const stripNodes = new Map(); // index -> elemen, dipakai ulang supaya thumbnail tidak berkedip
+
+function stripNode(k) {
+  let el = stripNodes.get(k);
+  if (el) return el;
+  el = document.createElement('div');
+  el.className = 't';
+  el.innerHTML = '<span class="fn"></span><span class="n"></span><span class="st"></span>';
+  el.querySelector('.fn').textContent = S.files[k].f;
+  el.querySelector('.n').textContent = k + 1;
+  const img = new Image();
+  img.alt = '';
+  img.decoding = 'async';
+  img.fetchPriority = 'low';
+  img.onerror = () => el.classList.add('broken');
+  img.src = thumbUrl(k);
+  el.prepend(img);
+  stripNodes.set(k, el);
+  return el;
+}
+
+function renderStrip(shift) {
+  const n = S.files.length;
+  const from = Math.max(0, S.i - STRIP_BEFORE);
+  const to = Math.min(n - 1, S.i + STRIP_AFTER);
+  const nodes = [];
+  for (let k = from; k <= to; k++) {
+    const el = stripNode(k);
+    const st = S.files[k].status;
+    el.classList.toggle('past', k < S.i);
+    el.classList.toggle('cur', k === S.i);
+    for (const s of Object.keys(LABEL)) el.classList.toggle(s, st === s);
+    el.querySelector('.st').textContent = LABEL[st] || '';
+    nodes.push(el);
+  }
+  for (const k of stripNodes.keys()) if (k < from || k > to) stripNodes.delete(k);
+
+  const inner = $('stripInner');
+  inner.replaceChildren(...nodes);
+  const strip = $('strip');
+  const cur = nodes[Math.min(S.i, to) - from];
+  if (!cur) return;
+  strip.scrollTop = cur.offsetTop - (strip.clientHeight - cur.offsetHeight) / 2;
+  if (shift && !reduceMotion) {
+    const step = (cur.offsetHeight + 8) * shift;
+    inner.getAnimations().forEach((a) => a.cancel());
+    inner.animate([{ transform: `translateY(${step}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' });
+  }
+}
+
+function preload() {
+  const wanted = new Set();
+  for (let k = S.i - 1; k <= S.i + PRELOAD_AHEAD; k++) {
+    if (k < 0 || k >= S.files.length) continue;
+    const u = imgUrl(k);
+    wanted.add(u);
+    if (!cache.has(u)) {
+      const im = new Image();
+      im.decoding = 'async';
+      im.src = u;
+      im.decode().catch(() => {});
+      cache.set(u, im);
+    }
+  }
+  for (const u of cache.keys()) if (!wanted.has(u)) cache.delete(u);
+}
+
+function render(shift = 0) {
+  const n = S.files.length;
+  const done = S.i >= n;
+  renderStrip(shift);
+  $('counter').textContent = `${Math.min(S.i + 1, n)} / ${n}`;
+  const c = S.count;
+  $('stats').innerHTML = `→ bagus <b>${c.good}</b> &nbsp;·&nbsp; ← jelek <b>${c.bad}</b> &nbsp;·&nbsp; ↓ <b>${c.kept}</b>`;
+  $('progress').style.width = n ? `${(S.i / n) * 100}%` : '0';
+  $('done').hidden = !done;
+
+  if (done) {
+    $('photo').removeAttribute('src');
+    $('name').textContent = '';
+    $('doneTitle').textContent = n ? 'Selesai' : 'Tidak ada foto';
+    $('doneText').textContent = n
+      ? `${c.good} bagus, ${c.bad} jelek, ${c.kept} dilewati.`
+      : 'Folder ini tidak berisi foto yang didukung.';
+    return;
+  }
+  S.retried = false;
+  storage(lastKey(S.src), S.files[S.i].f);
+  $('photo').src = imgUrl(S.i);
+  $('name').textContent = S.files[S.i].f;
+  preload();
+}
+
+function skip() {
+  if (S.i >= S.files.length) return;
+  const item = S.files[S.i];
+  item.status = 'kept';
+  S.count.kept++;
+  S.history.push(S.i++);
+  slideOut('kept');
+  flash('Dilewati', 'keep');
+  render(1);
+  enter({ transform: 'scale(.97)', opacity: 0 });
+}
+
+// to: 'good' (folder bagus) atau 'bad' (folder jelek)
+function move(to) {
+  if (S.i >= S.files.length) return;
+  const item = S.files[S.i];
+  const sid = S.id;
+  item.status = to;
+  S.count[to]++;
+  S.history.push(S.i++);
+  // Non-blocking: langsung lanjut ke foto berikutnya, request jalan di background.
+  item.p = item.p
+    .then(() => api('/api/move', { s: sid, f: item.f, to }))
+    .then((r) => { item.name = r.name; })
+    .catch((err) => {
+      toast(`Gagal memindah ${item.f}: ${err.message}`);
+      if (S.id === sid && item.status === to) {
+        item.status = 'kept';
+        S.count[to]--;
+        S.count.kept++;
+        render();
+      }
+    });
+  slideOut(to);
+  flash(to === 'good' ? 'Bagus →' : '← Jelek', to);
+  render(1);
+  enter({ transform: 'scale(.97)', opacity: 0 });
+}
+
+function undo() {
+  if (!S.history.length) return;
+  const idx = S.history.pop();
+  const item = S.files[idx];
+  const sid = S.id;
+  const st = item.status; // kembali dari arah perginya
+  if (st === 'good' || st === 'bad') {
+    S.count[st]--;
+    item.p = item.p
+      .then(() => {
+        if (!item.name) return;
+        const name = item.name;
+        item.name = null;
+        return api('/api/undo', { s: sid, f: item.f, name, to: st });
+      })
+      .catch((err) => toast(`Undo gagal: ${err.message}`));
+  } else if (st === 'kept') {
+    S.count.kept--;
+  }
+  item.status = null;
+  S.i = idx;
+  flash('Undo', 'undo');
+  render(-1);
+  enter({ transform: OUT[st] || 'scale(.97)', opacity: 0 });
+}
+
+// Kalau gambar gagal dimuat (mis. undo belum selesai), coba sekali lagi setelah operasi file beres.
+$('photo').addEventListener('error', () => {
+  if (!S || S.retried || S.i >= S.files.length) return;
+  S.retried = true;
+  const i = S.i;
+  S.files[i].p.then(() => {
+    if (S.i === i) $('photo').src = `${imgUrl(i)}&r=${Date.now()}`;
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!S || $('viewer').hidden) return;
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'ArrowLeft') {
+    e.preventDefault();
+    if (!e.repeat) move(k === 'ArrowRight' ? 'good' : 'bad'); // tahan tombol tidak memindah banyak foto sekaligus
+  } else if (k === 'ArrowDown') {
+    e.preventDefault();
+    skip();
+  } else if (k === 'ArrowUp' || ((e.metaKey || e.ctrlKey) && k.toLowerCase() === 'z')) {
+    e.preventDefault();
+    if (!e.repeat) undo();
+  } else if (k === 'Escape') {
+    e.preventDefault();
+    showSetup();
+  }
+});
+
+$('foot').addEventListener('click', (e) => {
+  const act = e.target.closest('button')?.dataset.act;
+  if (act === 'good' || act === 'bad') move(act);
+  else if (act === 'skip') skip();
+  else if (act === 'undo') undo();
+  e.target.blur();
+});
+
+$('homeBtn').addEventListener('click', showSetup);
+
+function showSetup() {
+  storage('sp.active', '0');
+  $('viewer').hidden = true;
+  $('setup').hidden = false;
+  $('src').focus();
+}
+
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('startBtn');
+  btn.disabled = true;
+  btn.textContent = 'Memindai…';
+  $('error').textContent = '';
+  const src = $('src').value;
+  const good = $('goodInput').value;
+  const bad = $('badInput').value;
+  const recursive = $('recursive').checked;
+  try {
+    const r = await api('/api/start', { src, good, bad, recursive });
+    storage('sp.src', src);
+    storage('sp.good', good);
+    storage('sp.bad', bad);
+    storage('sp.recursive', recursive ? '1' : '0');
+    cache.clear();
+    stripNodes.clear();
+    const start = resumeIndex(r.files, storage(lastKey(r.src)));
+    S = {
+      id: r.id,
+      src: r.src,
+      files: r.files.map((f) => ({ f, status: null, name: null, p: Promise.resolve() })),
+      i: start,
+      history: [],
+      count: { good: 0, bad: 0, kept: 0 },
+      retried: false,
+    };
+    storage('sp.active', '1');
+    $('dstGood').textContent = r.dst.good;
+    $('dstBad').textContent = r.dst.bad;
+    $('setup').hidden = true;
+    $('viewer').hidden = false;
+    render();
+    if (start > 0 && start < r.files.length) flash(`Lanjut dari foto ${start + 1}`, 'keep');
+    if (r.duplicates) toast(`${r.duplicates} foto duplikat dilewati (sudah ada di Bagus/Jelek atau salinan ganda)`, 'info');
+  } catch (err) {
+    $('error').textContent = err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Mulai';
+  }
+});
+
+$('src').value = storage('sp.src') || '';
+$('goodInput').value = storage('sp.good') || storage('sp.dst') || ''; // sp.dst: folder tujuan versi lama
+$('badInput').value = storage('sp.bad') || '';
+$('recursive').checked = storage('sp.recursive') !== '0';
+$('src').focus();
+// Reload saat sedang menyortir: langsung masuk lagi ke posisi terakhir.
+if (storage('sp.active') === '1' && $('src').value && $('goodInput').value && $('badInput').value) {
+  $('form').requestSubmit();
+}
+</script>
+</body>
+</html>
