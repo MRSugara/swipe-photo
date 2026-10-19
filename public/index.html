@@ -15,29 +15,76 @@
     --warn: #ff6b6b;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overscroll-behavior: none; }
   [hidden] { display: none !important; }
   kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--panel); font: 12px ui-monospace, Menlo, monospace; text-align: center; color: var(--text); }
 
-  /* Setup */
-  #setup { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; }
-  #setup form { width: min(580px, 100%); display: grid; gap: 14px; }
-  h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
-  .sub { margin: -8px 0 6px; color: var(--muted); }
-  label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
-  input[type=text] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 13px ui-monospace, Menlo, monospace; }
-  input[type=text]:focus { outline: none; border-color: var(--accent); }
-  label.check { display: flex; align-items: center; gap: 8px; color: var(--text); }
   button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--accent); color: #05210f; font-weight: 600; font-size: 14px; cursor: pointer; }
   button:disabled { opacity: .5; cursor: progress; }
-  #error { color: var(--warn); min-height: 1.4em; margin: 0; white-space: pre-wrap; }
-  .keys { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  button.secondary:hover { border-color: var(--muted); }
+  select { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .good-t { color: var(--accent); }
+
+  /* Beranda */
+  #setup { min-height: 100%; display: flex; justify-content: center; padding: 40px 16px; }
+  .home { width: min(640px, 100%); display: grid; gap: 18px; align-content: start; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+  h2 { margin: 12px 0 0; font-size: 15px; color: var(--muted); font-weight: 600; }
+  .sub { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+  .steps { margin: 0; padding: 14px 16px 14px 36px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 8px; }
+  .steps li::marker { color: var(--muted); }
+  #pickBtn { padding: 16px; font-size: 16px; border-radius: 12px; }
+  #error { color: var(--warn); margin: 0; white-space: pre-wrap; }
+  #error:empty { display: none; }
+  #projects { display: grid; gap: 10px; }
+  .proj { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .pinfo { flex: 1; min-width: 0; display: grid; gap: 4px; }
+  .pname { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ppath { color: var(--muted); font: 11px ui-monospace, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pbar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 4px; }
+  .pbar i { display: block; height: 100%; background: var(--accent); }
+  .pstat { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .proj.missing .pstat { color: var(--warn); }
+  .pact { display: flex; gap: 6px; flex: none; }
+  .pact button { padding: 8px 12px; font-size: 13px; }
+  @media (max-width: 560px) { .proj { flex-direction: column; align-items: stretch; } .pact button[data-act=open] { flex: 1; } }
+
+  /* Menunggu jendela pilih folder */
+  #waiting { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); }
+  #waiting .card { text-align: center; justify-items: center; }
+  #waiting p { margin: 0; }
+
+  /* Pilih folder (cadangan) */
+  #picker { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); }
+  .pk { width: min(620px, 100%); height: min(640px, 100%); display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .pk header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 4px; }
+  .pk-hint { margin: 0; padding: 0 16px 12px; color: var(--muted); font-size: 13px; }
+  #pkNote { margin: 0 16px 12px; padding: 8px 12px; border-radius: 8px; background: #2a1f0a; color: #f5d48b; font-size: 13px; }
+  #pkNote:empty { display: none; }
+  .pk header strong { font-size: 17px; }
+  .pk header button { padding: 4px 10px; }
+  #places { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+  #places button { padding: 5px 10px; font-size: 12px; border-radius: 999px; }
+  #places button.on { border-color: var(--accent); color: var(--accent); }
+  .pk-path { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg); }
+  .pk-path button { flex: none; padding: 4px 10px; font-size: 12px; }
+  #pkPath { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; color: var(--muted); font: 12px ui-monospace, Menlo, monospace; }
+  #pkList { flex: 1; min-height: 0; overflow-y: auto; padding: 6px; }
+  #pkList button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; background: transparent; color: var(--text); font-weight: 400; text-align: left; border-radius: 6px; }
+  #pkList button:hover, #pkList button:focus-visible { background: #222226; outline: none; }
+  #pkList button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #pkList p { margin: 24px 12px; color: var(--muted); text-align: center; }
+  .pk footer { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); }
+  #pkInfo { flex: 1; min-width: 0; color: var(--muted); font-size: 13px; }
+  #pkInfo b { color: var(--text); }
 
   /* Viewer */
   #viewer { position: fixed; inset: 0; display: flex; flex-direction: column; }
-  #bar { display: flex; align-items: center; gap: 16px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
-  #homeBtn { padding: 4px 10px; background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 12px; }
-  #homeBtn:hover { color: var(--text); border-color: var(--muted); }
+  #bar { display: flex; align-items: center; gap: 14px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+  #bar button { padding: 4px 10px; font-size: 12px; }
+  #pname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; max-width: 25%; }
   #counter { font-variant-numeric: tabular-nums; font-weight: 600; }
   #name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
   #stats { font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -45,12 +92,12 @@
   #track { height: 2px; background: var(--line); }
   #progress { height: 100%; width: 0; background: var(--accent); }
   #main { flex: 1; min-height: 0; display: flex; }
-  #stage { position: relative; flex: 1; min-width: 0; min-height: 0; }
 
-  /* Strip vertikal: foto sebelum & sesudah */
-  #strip { position: relative; flex: none; width: 184px; overflow: hidden; background: var(--panel); border-right: 1px solid var(--line); }
-  #stripInner { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
-  .t { position: relative; flex: none; height: 108px; border-radius: 8px; overflow: hidden; background: #111; box-shadow: 0 0 0 1px var(--line); }
+  /* Strip: semua foto, virtual (hanya yang terlihat yang dibuat) */
+  #strip { position: relative; flex: none; width: 184px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--line) transparent; background: var(--panel); border-right: 1px solid var(--line); }
+  #stripInner { position: relative; }
+  .t { position: absolute; left: 10px; right: 10px; height: 108px; border-radius: 8px; overflow: hidden; background: #111; box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+  .t:hover { box-shadow: 0 0 0 1px var(--muted); opacity: 1; }
   .t img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .t.past { opacity: .5; }
   .t.cur { opacity: 1; box-shadow: 0 0 0 2px var(--accent); }
@@ -58,14 +105,21 @@
   .t .st { position: absolute; right: 6px; top: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .t .st:empty { display: none; }
   .t.good .st { background: var(--accent); color: #05210f; }
-  .t.bad .st { background: var(--warn); color: #2a0606; }
   .t.kept .st { background: #3a3a40; color: var(--text); }
   .t .fn { display: none; position: absolute; inset: 0; padding: 30px 8px 8px; font: 11px ui-monospace, Menlo, monospace; color: var(--muted); word-break: break-all; }
   .t.broken img { visibility: hidden; }
   .t.broken .fn { display: block; }
-  @media (max-width: 700px) { #strip { display: none; } }
-  #stage { overflow: hidden; background: radial-gradient(ellipse at center, #1a1a1e 0%, var(--bg) 75%); }
-  #frame { position: absolute; inset: 28px; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; }
+  @media (max-width: 700px) {
+    #main { flex-direction: column-reverse; }
+    #strip { width: auto; height: 76px; overflow-x: auto; overflow-y: hidden; border-right: 0; border-top: 1px solid var(--line); }
+    #stripInner { height: 100%; }
+    .t { left: auto; right: auto; top: 6px; width: 86px; height: 64px; }
+    .t .st, .t .n { font-size: 10px; padding: 0 5px; }
+    .t .fn { display: none !important; }
+  }
+
+  #stage { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; touch-action: none; background: radial-gradient(ellipse at center, #1a1a1e 0%, var(--bg) 75%); }
+  #frame { position: absolute; inset: 28px; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; user-select: none; -webkit-user-select: none; }
   #photo, .ghost {
     grid-area: 1 / 1;
     max-width: 100%;
@@ -73,82 +127,196 @@
     border-radius: 10px;
     background: #111;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, .09), 0 2px 6px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .55);
+    -webkit-user-drag: none;
   }
+  #photo { cursor: zoom-in; }
   .ghost { z-index: 2; pointer-events: none; will-change: transform, opacity; }
-  @media (max-width: 600px) { #frame { inset: 12px; } }
+  @media (max-width: 600px) { #frame { inset: 12px 12px 34px; } }
   #badge { position: absolute; z-index: 3; top: 18px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; font-weight: 600; opacity: 0; pointer-events: none; }
   #badge.good { background: var(--accent); color: #05210f; }
-  #badge.bad { background: var(--warn); color: #2a0606; }
   #badge.keep { background: #3a3a40; color: var(--text); }
   #badge.undo { background: #f5c451; color: #2a1d00; }
-  #done { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; background: var(--bg); }
+  button.chip { position: absolute; z-index: 3; padding: 6px 12px; font-size: 13px; background: rgba(21, 21, 23, .94); box-shadow: 0 4px 16px rgba(0, 0, 0, .5); }
+  #resumeBtn { top: 12px; right: 12px; }
+  @media (max-width: 640px) { #resumeBtn { top: 50px; right: auto; left: 12px; } button.chip { font-size: 12px; } }
+  #burstBtn { top: 12px; left: 12px; }
+  #info { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 6px; color: var(--muted); font-size: 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; font-variant-numeric: tabular-nums; }
+  #info b { color: var(--text); font-weight: 500; }
+  #done { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; background: var(--bg); }
   #done p { margin: 6px 0; color: var(--muted); }
-  #done strong { display: block; font-size: 20px; color: var(--text); margin-bottom: 6px; }
-  #foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; padding: 8px 14px; background: var(--panel); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-  #foot button { padding: 4px 10px; background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; font-size: 12px; }
-  #foot button:hover { color: var(--text); border-color: var(--muted); }
-  .dst { color: var(--text); font-family: ui-monospace, Menlo, monospace; }
-  #toast { position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); background: #3a1414; color: #ffd7d7; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+  #done strong { display: block; font-size: 22px; color: var(--text); margin-bottom: 6px; }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 10px; }
+
+  /* Zoom */
+  #zoom { position: absolute; z-index: 5; inset: 0; overflow: hidden; background: #050506; cursor: move; touch-action: none; }
+  #zoomImg { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; will-change: transform; -webkit-user-drag: none; user-select: none; }
+  #zoomInfo { position: absolute; z-index: 1; top: 12px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(21, 21, 23, .92); font-size: 12px; white-space: nowrap; pointer-events: none; }
+
+  /* Bandingkan seri */
+  #compare { position: absolute; z-index: 6; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  #compare header { display: grid; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  #compare header strong { font-size: 15px; }
+  #compare header span { font-size: 12px; }
+  #cmpGrid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); grid-auto-rows: minmax(180px, 30vh); gap: 10px; padding: 12px; }
+  .cell { position: relative; border-radius: 10px; overflow: hidden; background: #111; box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+  .cell img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .cell .n { position: absolute; left: 8px; top: 8px; padding: 1px 8px; border-radius: 6px; background: rgba(0, 0, 0, .7); font-size: 12px; font-weight: 600; }
+  .cell .tick { position: absolute; right: 8px; top: 8px; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #05210f; font-size: 12px; font-weight: 700; display: none; }
+  .cell.picked { box-shadow: 0 0 0 3px var(--accent); }
+  .cell.picked .tick { display: block; }
+  .cell:not(.picked) img { opacity: .75; }
+  #compare footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--panel); }
+
+  /* Panduan singkat */
+  #help { position: absolute; z-index: 7; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); overflow-y: auto; }
+  .card { width: min(460px, 100%); display: grid; gap: 10px; padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+  .card strong { font-size: 18px; }
+  .hk { display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: baseline; }
+  .dst { display: block; color: var(--muted); font: 11px ui-monospace, Menlo, monospace; word-break: break-all; }
+  .card button { margin-top: 6px; }
+
+  /* Tombol aksi */
+  #foot { display: flex; justify-content: center; gap: 10px; padding: 12px 14px; background: var(--panel); border-top: 1px solid var(--line); }
+  .act { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 130px; padding: 12px 18px; font-size: 15px; white-space: nowrap; background: #222226; color: var(--text); border: 1px solid var(--line); }
+  .act:hover { border-color: var(--muted); }
+  .act.good { min-width: 180px; background: var(--accent); color: #05210f; border-color: transparent; }
+  .act kbd { background: rgba(0, 0, 0, .18); border-color: rgba(0, 0, 0, .25); color: inherit; }
+  #foot .sep { flex: none; width: 1px; background: var(--line); margin: 0 6px; }
+  @media (max-width: 760px) { #name { display: none; } }
+  @media (max-width: 640px) {
+    #bar { gap: 8px; padding: 6px 10px; }
+    #foot { gap: 6px; padding: 10px; }
+    #foot .sep { display: none; }
+    .act, .act.good { flex: 1; min-width: 0; padding: 12px 4px; font-size: 14px; }
+    .act kbd, #stats, #helpBtn .lbl { display: none; }
+    #pname { max-width: 35%; }
+  }
+  #toast { position: fixed; z-index: 20; bottom: 76px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); background: #3a1414; color: #ffd7d7; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
   #toast.info { background: #1e2a22; color: #c8f2d6; }
 </style>
 </head>
 <body>
 
 <section id="setup">
-  <form id="form" autocomplete="off">
-    <h1>Swipe Photo</h1>
-    <p class="sub">Sortir foto cepat pakai keyboard.</p>
-    <label>Folder sumber (berisi foto)
-      <input type="text" id="src" placeholder="/Users/a/Pictures/Import" required>
-    </label>
-    <label>Folder foto bagus (<kbd>→</kbd> dipindah ke sini)
-      <input type="text" id="goodInput" placeholder="/Users/a/Pictures/Bagus" required>
-    </label>
-    <label>Folder foto jelek (<kbd>←</kbd> dipindah ke sini)
-      <input type="text" id="badInput" placeholder="/Users/a/Pictures/Jelek" required>
-    </label>
-    <label class="check"><input type="checkbox" id="recursive" checked> Ikut scan subfolder</label>
-    <button id="startBtn">Mulai</button>
+  <div class="home">
+    <header>
+      <h1>Swipe Photo</h1>
+      <p class="sub">Pilih foto-foto bagus dengan cepat.</p>
+    </header>
+    <ol class="steps">
+      <li><b>Pilih folder</b> yang berisi foto.</li>
+      <li>Untuk tiap foto, tekan <kbd>→</kbd> kalau <b class="good-t">bagus</b>, atau <kbd>←</kbd> untuk lewati. Bisa juga digeser (swipe).</li>
+      <li>Foto bagus otomatis dipindah ke folder <b>Bagus</b> di dalam folder itu. Foto lain tetap di tempatnya.</li>
+    </ol>
+    <button id="pickBtn" type="button">+ Pilih folder foto</button>
     <p id="error"></p>
-    <div class="keys">
-      <span><kbd>→</kbd> bagus</span>
-      <span><kbd>←</kbd> jelek</span>
-      <span><kbd>↓</kbd> lewati</span>
-      <span><kbd>↑</kbd> / <kbd>⌘Z</kbd> undo</span>
-      <span><kbd>Esc</kbd> ganti folder</span>
-    </div>
-  </form>
+
+    <h2 id="projectsTitle" hidden>Proyek kamu</h2>
+    <div id="projects"></div>
+  </div>
 </section>
+
+<div id="picker" hidden>
+  <div class="pk" role="dialog" aria-label="Pilih folder foto">
+    <header>
+      <strong>Pilih folder foto</strong>
+      <button type="button" class="secondary" data-close title="Tutup (Esc)">✕</button>
+    </header>
+    <p class="pk-hint">Klik nama folder untuk membukanya. Kalau sudah di folder yang berisi foto, klik <b>Pakai folder ini</b>.</p>
+    <p id="pkNote"></p>
+    <div id="places"></div>
+    <div class="pk-path">
+      <button type="button" class="secondary" id="pkUp" title="Folder di atasnya">↑ Naik</button>
+      <span id="pkPath"><bdi id="pkPathText"></bdi></span>
+    </div>
+    <div id="pkList"></div>
+    <footer>
+      <span id="pkInfo"></span>
+      <button type="button" class="secondary" data-close>Batal</button>
+      <button type="button" id="pkChoose">✓ Pakai folder ini</button>
+    </footer>
+  </div>
+</div>
+
+<div id="waiting" hidden>
+  <div class="card">
+    <strong>📂 Jendela pilih folder sudah terbuka</strong>
+    <p>Pilih folder fotomu, lalu klik tombol <b id="waitBtnName">Choose</b>.</p>
+    <p class="muted">Jendelanya tidak kelihatan? Mungkin tertutup browser. Tekan <span id="waitKeys"><kbd>⌘</kbd> + <kbd>Tab</kbd></span> untuk mencarinya.</p>
+    <button type="button" class="secondary" id="pickCancel">Batal</button>
+  </div>
+</div>
 
 <section id="viewer" hidden>
   <div id="bar">
-    <button id="homeBtn" type="button" title="Kembali ke beranda (Esc)">⌂ Beranda</button>
+    <button id="homeBtn" class="secondary" type="button" title="Kembali ke daftar proyek (Esc)">← Proyek</button>
+    <span id="pname"></span>
     <span id="counter"></span>
     <span id="name"></span>
+    <select id="filter" title="Foto yang ditampilkan">
+      <option value="all">Semua foto</option>
+      <option value="undecided">Belum dipilih</option>
+      <option value="good">👍 Bagus saja</option>
+      <option value="kept">Dilewati saja</option>
+    </select>
     <span id="stats"></span>
+    <button id="helpBtn" class="secondary" type="button" title="Cara pakai (?)">?<span class="lbl"> Bantuan</span></button>
   </div>
   <div id="track"><div id="progress"></div></div>
   <div id="main">
   <aside id="strip"><div id="stripInner"></div></aside>
   <div id="stage">
-    <div id="frame"><img id="photo" alt="" fetchpriority="high" decoding="async"></div>
+    <div id="frame"><img id="photo" alt="" fetchpriority="high" decoding="async" draggable="false"></div>
     <div id="badge"></div>
+    <div id="info"></div>
+    <button type="button" id="burstBtn" class="secondary chip" hidden></button>
+    <button type="button" id="resumeBtn" class="secondary chip" hidden>Lanjut ke yang belum dipilih ⤓</button>
+    <div id="zoom" hidden><img id="zoomImg" alt="" draggable="false"><div id="zoomInfo"></div></div>
+    <div id="compare" hidden>
+      <header>
+        <strong id="cmpTitle"></strong>
+        <span class="muted">Klik foto (atau tekan 1–9) untuk menandai 👍. Yang tidak ditandai akan dilewati.</span>
+      </header>
+      <div id="cmpGrid"></div>
+      <footer>
+        <button type="button" class="secondary" id="cmpCancel">Batal</button>
+        <button type="button" class="secondary" id="cmpAll">Tandai semua</button>
+        <button type="button" id="cmpSave">Simpan pilihan</button>
+      </footer>
+    </div>
     <div id="done" hidden>
       <div>
         <strong id="doneTitle"></strong>
         <p id="doneText"></p>
-        <p><kbd>↑</kbd> undo &nbsp; <kbd>Esc</kbd> ganti folder</p>
+        <div class="row">
+          <button type="button" id="showAll" class="secondary">Tampilkan semua foto</button>
+          <button type="button" id="openGood">Buka folder Bagus</button>
+          <button type="button" id="doneHome" class="secondary">← Kembali ke daftar proyek</button>
+        </div>
+        <p>Salah pilih? Tekan <kbd>↑</kbd>, atau klik foto di daftar untuk memilih ulang.</p>
+      </div>
+    </div>
+    <div id="help" hidden>
+      <div class="card">
+        <strong>Cara memilih</strong>
+        <div class="hk"><kbd>→</kbd><div><b class="good-t">Bagus</b> — dipindah ke<span class="dst" id="dstGood"></span></div></div>
+        <div class="hk"><span><kbd>←</kbd> <kbd>↓</kbd></span><div>Lewati — foto tetap di tempatnya</div></div>
+        <div class="hk"><kbd>↑</kbd><div>Batalkan pilihan terakhir</div></div>
+        <div class="hk"><span>👆</span><div>Geser foto ke kanan = bagus, ke kiri = lewati (sentuh, mouse, atau dua jari di trackpad)</div></div>
+        <div class="hk"><kbd>Spasi</kbd><div>Perbesar foto 100% untuk cek ketajaman (atau klik foto). Scroll untuk zoom lebih jauh.</div></div>
+        <div class="hk"><kbd>B</kbd><div>Bandingkan foto-foto beruntun (seri) berdampingan</div></div>
+        <div class="hk"><span>🖱️</span><div>Klik foto di daftar untuk melihat & memilih ulang</div></div>
+        <div class="hk"><kbd>Esc</kbd><div>Kembali ke daftar proyek. Semua pilihan tersimpan.</div></div>
+        <button type="button" id="helpOk">Mengerti, mulai</button>
       </div>
     </div>
   </div>
   </div>
   <div id="foot">
-    <button data-act="bad">← Jelek</button>
-    <button data-act="skip">↓ Lewati</button>
-    <button data-act="good">Bagus →</button>
-    <button data-act="undo">↑ Undo</button>
-    <span>Bagus: <span class="dst" id="dstGood"></span></span>
-    <span>Jelek: <span class="dst" id="dstBad"></span></span>
+    <button class="act" data-act="undo" title="Batalkan pilihan terakhir">↶ Batalkan <kbd>↑</kbd></button>
+    <span class="sep"></span>
+    <button class="act" data-act="skip">Lewati <kbd>←</kbd></button>
+    <button class="act good" data-act="good">👍 Bagus <kbd>→</kbd></button>
   </div>
 </section>
 
@@ -158,6 +326,12 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
 const PRELOAD_AHEAD = 6;
+const SWIPE_PX = 90;       // jarak geser foto untuk memilih
+const WHEEL_SWIPE = 80;    // akumulasi geser dua jari di trackpad
+const BURST_GAP_MS = 2000; // foto berjarak ≤ 2 detik dianggap satu seri
+const BURST_MAX = 24;
+const NEEDS_CONVERT = /\.(heic|heif|cr2|cr3|crw|nef|nrw|arw|srf|sr2|raf|orf|rw2|rwl|dng|pef|srw|x3f|3fr|iiq|erf|kdc|mrw|mos)$/i;
+const IS_WIN_CLIENT = /Win/.test(navigator.platform);
 const cache = new Map(); // url -> Image (preload + decode di background)
 let S = null;            // state sesi
 
@@ -168,8 +342,9 @@ function storage(key, value) {
   } catch { return null; }
 }
 
+// Tanpa body: GET, dengan body: POST JSON.
 async function api(url, body) {
-  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const r = await fetch(url, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || r.statusText);
   return data;
@@ -187,6 +362,7 @@ function toast(msg, kind = 'error') {
 
 function flash(text, cls) {
   const b = $('badge');
+  b.style.opacity = '';
   b.textContent = text;
   b.className = cls;
   b.animate([{ opacity: 1 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], { duration: 500, easing: 'ease-out' });
@@ -194,27 +370,29 @@ function flash(text, cls) {
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SLIDE_MS = 240;
-// Arah lempar foto per status: bagus ke kanan, jelek ke kiri, dilewati ke bawah.
+// Arah lempar foto: bagus ke kanan, dilewati ke kiri (←) atau ke bawah (↓).
 const OUT = {
   good: 'translateX(60%) rotate(8deg)',
-  bad: 'translateX(-60%) rotate(-8deg)',
+  left: 'translateX(-60%) rotate(-8deg)',
   kept: 'translateY(40%) scale(.9)',
 };
-const LABEL = { good: '→ bagus', bad: '← jelek', kept: '↓ dilewati' };
+const LABEL = { good: '👍 bagus', kept: 'dilewati' };
+const FILTER_LABEL = { all: 'Semua foto', undecided: 'Belum dipilih', good: 'Bagus saja', kept: 'Dilewati saja' };
 
-// Foto saat ini dilempar keluar sesuai statusnya lewat salinan,
-// jadi foto berikutnya bisa langsung tampil tanpa menunggu animasi selesai.
-function slideOut(status) {
+// Foto saat ini dilempar keluar lewat salinan, jadi foto berikutnya bisa langsung tampil
+// tanpa menunggu animasi selesai. from: posisi awal (mis. sedang digeser jari).
+function slideOut(dir, from = 'none') {
   const photo = $('photo');
   if (reduceMotion || !photo.getAttribute('src')) return;
   const ghost = photo.cloneNode();
   ghost.removeAttribute('id');
   ghost.className = 'ghost';
+  ghost.style.transform = '';
   $('frame').append(ghost);
   const ghosts = $('frame').querySelectorAll('.ghost');
   if (ghosts.length > 3) ghosts[0].remove(); // tombol ditahan: batasi jumlah salinan
   ghost.animate(
-    [{ transform: 'none', opacity: 1 }, { transform: OUT[status], opacity: 0 }],
+    [{ transform: from, opacity: 1 }, { transform: OUT[dir], opacity: 0 }],
     { duration: SLIDE_MS, easing: 'cubic-bezier(.4,0,1,1)' }
   ).onfinish = () => ghost.remove();
 }
@@ -226,81 +404,201 @@ function enter(from) {
   photo.animate([from, { transform: 'none', opacity: 1 }], { duration: SLIDE_MS, easing: 'cubic-bezier(0,0,.2,1)' });
 }
 
-// ---------- Posisi terakhir (bertahan setelah reload) ----------
-// Disimpan per folder sumber sebagai nama file, bukan nomor urut: foto yang sudah
-// dipindah hilang dari daftar, jadi nomor urutnya bergeser setelah scan ulang.
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-const lastKey = (src) => `sp.last:${src}`;
+// ---------- Daftar tampil (filter) ----------
+// S.view = indeks foto yang ditampilkan (urut), S.pos[k] = posisi foto k di S.view atau -1.
+// Daftar dibuat saat filter dipilih dan tidak berubah sendiri waktu foto dipilih,
+// supaya foto tidak "hilang" dari layar tepat setelah ditandai.
 
-function resumeIndex(files, last) {
-  if (!last) return 0;
-  const exact = files.indexOf(last);
-  if (exact >= 0) return exact;
-  // Foto terakhir sudah dipindah: lanjut ke foto pertama sesudahnya (urutan sama dengan server)
-  const next = files.findIndex((f) => collator.compare(f, last) > 0);
-  return next >= 0 ? next : files.length;
+function matchFilter(it, filter) {
+  return filter === 'all' || (filter === 'undecided' ? !it.status : it.status === filter);
 }
 
-const imgUrl = (i) => `/img?s=${S.id}&f=${encodeURIComponent(S.files[i].f)}`;
-const thumbUrl = (i) => `/thumb?s=${S.id}&f=${encodeURIComponent(S.files[i].f)}`;
+function buildView() {
+  const n = S.files.length;
+  S.view = [];
+  S.pos = new Int32Array(n).fill(-1);
+  for (let k = 0; k < n; k++) {
+    if (matchFilter(S.files[k], S.filter)) {
+      S.pos[k] = S.view.length;
+      S.view.push(k);
+    }
+  }
+}
 
-// ---------- Strip vertikal (sebelum / sesudah) ----------
-const STRIP_BEFORE = 6;
-const STRIP_AFTER = 8;
-const stripNodes = new Map(); // index -> elemen, dipakai ulang supaya thumbnail tidak berkedip
+// Foto berikutnya di daftar tampil setelah k (S.files.length = sudah di akhir).
+function nextInView(k) {
+  const p = S.pos[k];
+  if (p >= 0) return S.view[p + 1] ?? S.files.length;
+  let lo = 0;
+  let hi = S.view.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (S.view[mid] > k) hi = mid;
+    else lo = mid + 1;
+  }
+  return S.view[lo] ?? S.files.length;
+}
 
-function stripNode(k) {
-  let el = stripNodes.get(k);
-  if (el) return el;
-  el = document.createElement('div');
+function applyFilter(filter, keepCurrent = true) {
+  S.filter = filter;
+  $('filter').value = filter;
+  buildView();
+  if (!keepCurrent || S.pos[S.i] < 0) S.i = S.view[0] ?? S.files.length;
+  layoutStrip();
+  render();
+}
+
+$('filter').addEventListener('change', (e) => {
+  applyFilter(e.target.value);
+  e.target.blur();
+});
+
+// ---------- Lanjut dari foto yang belum dipilih ----------
+// Pilihan (bagus / dilewati) disimpan server per proyek, jadi tandanya tetap ada setelah
+// proyek dibuka lagi dan "lanjut" = foto pertama yang belum ditandai.
+function firstUndecided(from = 0) {
+  const k = S.files.findIndex((it, i) => i >= from && !it.status);
+  return k >= 0 ? k : S.files.length;
+}
+
+// Foto bagus sudah pindah ke folder Bagus, jadi diambil dari sana (g = namanya di folder Bagus).
+function ref(i) {
+  const it = S.files[i];
+  return it.status === 'good' && it.name ? { g: it.name } : { f: it.f };
+}
+function fileParam(i) {
+  const r = ref(i);
+  return r.g ? `g=${encodeURIComponent(r.g)}` : `f=${encodeURIComponent(r.f)}`;
+}
+const imgUrl = (i) => `/img?s=${S.id}&${fileParam(i)}`;
+const thumbUrl = (i) => `/thumb?s=${S.id}&${fileParam(i)}`;
+// HEIC/RAW ditampilkan sebagai JPEG kecil; untuk zoom minta versi ukuran asli.
+const zoomUrl = (i) => (S.canZoomConvert && NEEDS_CONVERT.test(ref(i).g || ref(i).f) ? `${imgUrl(i)}&z=1` : imgUrl(i));
+
+// ---------- Strip virtual ----------
+// Hanya kotak yang terlihat (+ cadangan) yang dibuat, jadi puluhan ribu foto tetap ringan.
+// Vertikal di kiri; horizontal di bawah foto untuk layar sempit (HP).
+const narrow = matchMedia('(max-width: 700px)');
+const OVERSCAN = 8;
+const stripPool = new Map(); // indeks foto -> elemen
+let stripTouched = 0;        // waktu terakhir strip di-scroll sendiri oleh user
+let stripFrame = 0;
+
+const stripGeom = () => (narrow.matches ? { step: 92, pad: 6, size: 86 } : { step: 116, pad: 10, size: 108 });
+
+function makeNode(k) {
+  const el = document.createElement('div');
   el.className = 't';
-  el.innerHTML = '<span class="fn"></span><span class="n"></span><span class="st"></span>';
+  el.dataset.k = k;
+  el.title = 'Klik untuk melihat & memilih ulang foto ini';
+  el.innerHTML = '<img alt="" decoding="async" draggable="false"><span class="fn"></span><span class="n"></span><span class="st"></span>';
   el.querySelector('.fn').textContent = S.files[k].f;
   el.querySelector('.n').textContent = k + 1;
-  const img = new Image();
-  img.alt = '';
-  img.decoding = 'async';
+  const img = el.querySelector('img');
   img.fetchPriority = 'low';
   img.onerror = () => el.classList.add('broken');
   img.src = thumbUrl(k);
-  el.prepend(img);
-  stripNodes.set(k, el);
   return el;
 }
 
-function renderStrip(shift) {
-  const n = S.files.length;
-  const from = Math.max(0, S.i - STRIP_BEFORE);
-  const to = Math.min(n - 1, S.i + STRIP_AFTER);
-  const nodes = [];
-  for (let k = from; k <= to; k++) {
-    const el = stripNode(k);
-    const st = S.files[k].status;
-    el.classList.toggle('past', k < S.i);
-    el.classList.toggle('cur', k === S.i);
-    for (const s of Object.keys(LABEL)) el.classList.toggle(s, st === s);
-    el.querySelector('.st').textContent = LABEL[st] || '';
-    nodes.push(el);
-  }
-  for (const k of stripNodes.keys()) if (k < from || k > to) stripNodes.delete(k);
+function placeNode(el, p) {
+  const g = stripGeom();
+  const at = `${g.pad + p * g.step}px`;
+  el.style.top = narrow.matches ? '' : at;
+  el.style.left = narrow.matches ? at : '';
+}
 
-  const inner = $('stripInner');
-  inner.replaceChildren(...nodes);
+function layoutStrip() {
+  const g = stripGeom();
+  const total = `${g.pad * 2 + S.view.length * g.step}px`;
+  $('stripInner').style.height = narrow.matches ? '' : total;
+  $('stripInner').style.width = narrow.matches ? total : '';
+  for (const el of stripPool.values()) el.remove();
+  stripPool.clear();
+  renderStripWindow();
+}
+
+function renderStripWindow() {
+  stripFrame = 0;
+  if (!S) return;
+  const g = stripGeom();
   const strip = $('strip');
-  const cur = nodes[Math.min(S.i, to) - from];
-  if (!cur) return;
-  strip.scrollTop = cur.offsetTop - (strip.clientHeight - cur.offsetHeight) / 2;
-  if (shift && !reduceMotion) {
-    const step = (cur.offsetHeight + 8) * shift;
-    inner.getAnimations().forEach((a) => a.cancel());
-    inner.animate([{ transform: `translateY(${step}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' });
+  const scroll = narrow.matches ? strip.scrollLeft : strip.scrollTop;
+  const span = narrow.matches ? strip.clientWidth : strip.clientHeight;
+  const from = Math.max(0, Math.floor((scroll - g.pad) / g.step) - OVERSCAN);
+  const to = Math.min(S.view.length - 1, Math.ceil((scroll + span) / g.step) + OVERSCAN);
+  for (const [k, el] of stripPool) {
+    const p = S.pos[k];
+    if (p < from || p > to) {
+      el.remove();
+      stripPool.delete(k);
+    }
   }
+  const frag = document.createDocumentFragment();
+  for (let p = from; p <= to; p++) {
+    const k = S.view[p];
+    if (stripPool.has(k)) continue;
+    const el = makeNode(k);
+    placeNode(el, p);
+    stripPool.set(k, el);
+    updateNode(k);
+    frag.append(el);
+  }
+  $('stripInner').append(frag);
+}
+
+function updateNode(k) {
+  const el = stripPool.get(k);
+  if (!el) return;
+  const st = S.files[k].status;
+  el.classList.toggle('cur', k === S.i);
+  el.classList.toggle('past', !!st);
+  for (const s of Object.keys(LABEL)) el.classList.toggle(s, st === s);
+  el.querySelector('.st').textContent = LABEL[st] || '';
+}
+
+function scrollStrip() {
+  if (Date.now() - stripTouched < 2000) return; // jangan rebut scroll saat user sedang melihat-lihat
+  const p = S.pos[Math.min(S.i, S.files.length - 1)];
+  if (p === undefined || p < 0) return;
+  const g = stripGeom();
+  const strip = $('strip');
+  const span = narrow.matches ? strip.clientWidth : strip.clientHeight;
+  const target = g.pad + p * g.step - (span - g.size) / 2;
+  const far = Math.abs(target - (narrow.matches ? strip.scrollLeft : strip.scrollTop)) > span * 3;
+  strip.scrollTo({ [narrow.matches ? 'left' : 'top']: target, behavior: reduceMotion || far ? 'auto' : 'smooth' });
+}
+
+$('strip').addEventListener('scroll', () => {
+  if (!stripFrame) stripFrame = requestAnimationFrame(renderStripWindow);
+}, { passive: true });
+for (const ev of ['wheel', 'touchmove', 'pointerdown']) {
+  $('strip').addEventListener(ev, () => { stripTouched = Date.now(); }, { passive: true });
+}
+$('stripInner').addEventListener('click', (e) => {
+  const el = e.target.closest('.t');
+  if (el) goTo(Number(el.dataset.k));
+});
+narrow.addEventListener('change', () => {
+  if (!S) return;
+  layoutStrip();
+  stripTouched = 0;
+  scrollStrip();
+});
+
+function goTo(k) {
+  if (!S || k === S.i) return;
+  if (k < S.files.length && S.pos[k] < 0) applyFilter('all');
+  S.i = k;
+  stripTouched = 0;
+  render();
+  enter({ transform: 'scale(.97)', opacity: 0 });
 }
 
 function preload() {
   const wanted = new Set();
-  for (let k = S.i - 1; k <= S.i + PRELOAD_AHEAD; k++) {
-    if (k < 0 || k >= S.files.length) continue;
+  const prev = S.view[S.pos[S.i] - 1];
+  for (let k = prev ?? S.i, c = 0; k < S.files.length && c <= PRELOAD_AHEAD + 1; k = nextInView(k), c++) {
     const u = imgUrl(k);
     wanted.add(u);
     if (!cache.has(u)) {
@@ -314,98 +612,207 @@ function preload() {
   for (const u of cache.keys()) if (!wanted.has(u)) cache.delete(u);
 }
 
-function render(shift = 0) {
+// ---------- Info foto & seri (dari EXIF, diambil bertahap) ----------
+
+function ensureMeta() {
+  const want = [];
+  const end = Math.min(S.files.length, S.i + 80);
+  for (let k = Math.max(0, S.i - 30); k < end && want.length < 120; k++) {
+    if (S.meta[k] === undefined && !S.metaReq.has(k)) want.push(k);
+  }
+  if (!want.length) return;
+  for (const k of want) S.metaReq.add(k);
+  const sid = S.id;
+  api('/api/meta', { s: sid, items: want.map(ref) })
+    .then((res) => {
+      if (!S || S.id !== sid) return;
+      want.forEach((k, j) => {
+        S.meta[k] = res[j];
+        S.metaReq.delete(k);
+      });
+      renderInfo();
+    })
+    .catch(() => {
+      if (S && S.id === sid) for (const k of want) S.metaReq.delete(k);
+    });
+}
+
+const fmtDate = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function renderInfo() {
+  if (!S) return;
+  const k = S.i;
+  const done = k >= S.files.length;
+  const m = done ? null : S.meta[k];
+  const parts = [];
+  if (m) {
+    parts.push(`${m.exact ? '' : '~'}${fmtDate.format(m.t)}`);
+    if (m.w && m.h) parts.push(`<b>${m.w}×${m.h}</b>`);
+    parts.push(`${(m.size / 1048576).toFixed(1)} MB`);
+    if (m.cam) parts.push(esc(m.cam));
+    const set = [];
+    if (m.fn) set.push(`f/${+m.fn.toFixed(1)}`);
+    if (m.exp) set.push(m.exp < 1 ? `1/${Math.round(1 / m.exp)}s` : `${+m.exp.toFixed(1)}s`);
+    if (m.iso) set.push(`ISO ${m.iso}`);
+    if (m.fl) set.push(`${Math.round(m.fl)}mm`);
+    if (set.length) parts.push(set.join(' '));
+  }
+  if (!done && S.files[k].extra) parts.push('<b>+ RAW/XMP</b>');
+  $('info').innerHTML = parts.join(' &nbsp;·&nbsp; ');
+
+  const burst = done ? null : burstAt(k);
+  $('burstBtn').hidden = !burst;
+  if (burst) $('burstBtn').textContent = `📸 Seri ${burst.length} foto mirip · Bandingkan (B)`;
+}
+
+// Foto berurutan di folder yang sama dengan jam ambil (EXIF) berjarak ≤ 2 detik.
+// Hanya pakai tanggal dari kamera: tanggal file sering sama semua setelah disalin.
+function burstAt(k) {
+  const m = S.meta;
+  const near = (a, b) => m[a]?.exact && m[b]?.exact && Math.abs(m[a].t - m[b].t) <= BURST_GAP_MS
+    && dirOf(S.files[a].f) === dirOf(S.files[b].f);
+  let a = k;
+  let b = k;
+  while (a > 0 && b - a + 1 < BURST_MAX && near(a - 1, a)) a--;
+  while (b < S.files.length - 1 && b - a + 1 < BURST_MAX && near(b, b + 1)) b++;
+  if (b === a) return null;
+  return Array.from({ length: b - a + 1 }, (_, j) => a + j);
+}
+const dirOf = (f) => f.slice(0, Math.max(0, f.lastIndexOf('/'), f.lastIndexOf('\\')));
+
+function counts() {
+  const c = { good: 0, kept: 0 };
+  for (const it of S.files) if (it.status) c[it.status]++;
+  return c;
+}
+
+function render() {
   const n = S.files.length;
   const done = S.i >= n;
-  renderStrip(shift);
-  $('counter').textContent = `${Math.min(S.i + 1, n)} / ${n}`;
-  const c = S.count;
-  $('stats').innerHTML = `→ bagus <b>${c.good}</b> &nbsp;·&nbsp; ← jelek <b>${c.bad}</b> &nbsp;·&nbsp; ↓ <b>${c.kept}</b>`;
-  $('progress').style.width = n ? `${(S.i / n) * 100}%` : '0';
+  if (Z.on && Z.k !== S.i) zoomClose();
+  for (const k of stripPool.keys()) if (k === S.prevCur || k === S.i) updateNode(k);
+  S.prevCur = S.i;
+  scrollStrip();
+  const c = counts();
+  const p = S.pos[S.i];
+  $('counter').textContent = S.filter === 'all'
+    ? `Foto ${Math.min(S.i + 1, n)} dari ${n}`
+    : `${done || p < 0 ? S.view.length : p + 1} dari ${S.view.length} · ${FILTER_LABEL[S.filter]}`;
+  $('stats').innerHTML = `👍 bagus <b>${c.good}</b> &nbsp;·&nbsp; dilewati <b>${c.kept}</b>`;
+  $('progress').style.width = n ? `${((c.good + c.kept) / n) * 100}%` : '0';
+  // Sedang melihat foto yang sudah dipilih (memilih ulang) dan masih ada yang belum dipilih
+  const next = firstUndecided();
+  $('resumeBtn').hidden = next >= n || next === S.i || (!done && !S.files[S.i].status);
   $('done').hidden = !done;
+  renderInfo();
+  ensureMeta();
 
   if (done) {
     $('photo').removeAttribute('src');
     $('name').textContent = '';
-    $('doneTitle').textContent = n ? 'Selesai' : 'Tidak ada foto';
-    $('doneText').textContent = n
-      ? `${c.good} bagus, ${c.bad} jelek, ${c.kept} dilewati.`
-      : 'Folder ini tidak berisi foto yang didukung.';
+    const left = n - c.good - c.kept;
+    const filtered = S.filter !== 'all';
+    $('showAll').hidden = !filtered;
+    if (filtered) {
+      $('doneTitle').textContent = S.view.length ? 'Akhir daftar' : 'Tidak ada foto';
+      $('doneText').textContent = S.view.length
+        ? `Semua foto di tampilan "${FILTER_LABEL[S.filter]}" sudah dilihat.`
+        : `Belum ada foto di tampilan "${FILTER_LABEL[S.filter]}".`;
+    } else {
+      $('doneTitle').textContent = !n ? 'Tidak ada foto di folder ini' : left ? 'Sampai di foto terakhir' : 'Selesai! 🎉';
+      $('doneText').textContent = n
+        ? `${c.good} bagus, ${c.kept} dilewati${left ? `, ${left} belum dipilih` : ''}.`
+        : 'Folder ini tidak berisi foto yang didukung (selain yang sudah ada di folder Bagus).';
+    }
     return;
   }
   S.retried = false;
-  storage(lastKey(S.src), S.files[S.i].f);
   $('photo').src = imgUrl(S.i);
   $('name').textContent = S.files[S.i].f;
   preload();
 }
 
-function skip() {
-  if (S.i >= S.files.length) return;
-  const item = S.files[S.i];
-  item.status = 'kept';
-  S.count.kept++;
-  S.history.push(S.i++);
-  slideOut('kept');
-  flash('Dilewati', 'keep');
-  render(1);
-  enter({ transform: 'scale(.97)', opacity: 0 });
-}
-
-// to: 'good' (folder bagus) atau 'bad' (folder jelek)
-function move(to) {
-  if (S.i >= S.files.length) return;
-  const item = S.files[S.i];
+// Ubah status foto k, pindahkan file sesuai perubahannya (lewati ↔ bagus), dan simpan
+// pilihannya di server. Non-blocking: request jalan di background, berurutan per foto.
+function setStatus(k, status) {
+  const item = S.files[k];
+  const old = item.status;
+  if (old === status) return;
+  item.status = status;
   const sid = S.id;
-  item.status = to;
-  S.count[to]++;
-  S.history.push(S.i++);
-  // Non-blocking: langsung lanjut ke foto berikutnya, request jalan di background.
-  item.p = item.p
-    .then(() => api('/api/move', { s: sid, f: item.f, to }))
-    .then((r) => { item.name = r.name; })
-    .catch((err) => {
-      toast(`Gagal memindah ${item.f}: ${err.message}`);
-      if (S.id === sid && item.status === to) {
-        item.status = 'kept';
-        S.count[to]--;
-        S.count.kept++;
-        render();
-      }
-    });
-  slideOut(to);
-  flash(to === 'good' ? 'Bagus →' : '← Jelek', to);
-  render(1);
-  enter({ transform: 'scale(.97)', opacity: 0 });
-}
-
-function undo() {
-  if (!S.history.length) return;
-  const idx = S.history.pop();
-  const item = S.files[idx];
-  const sid = S.id;
-  const st = item.status; // kembali dari arah perginya
-  if (st === 'good' || st === 'bad') {
-    S.count[st]--;
+  if (status === 'good') {
     item.p = item.p
-      .then(() => {
+      .then(() => api('/api/move', { s: sid, f: item.f, to: 'good' }))
+      .then((r) => { item.name = r.name; })
+      .catch((err) => {
+        toast(`Gagal memindah ${item.f}: ${err.message}`);
+        if (S.id === sid && item.status === 'good') {
+          item.status = 'kept';
+          render();
+        }
+      });
+  } else if (old === 'good') {
+    item.p = item.p
+      .then(async () => {
         if (!item.name) return;
         const name = item.name;
         item.name = null;
-        return api('/api/undo', { s: sid, f: item.f, name, to: st });
+        try {
+          await api('/api/undo', { s: sid, f: item.f, name, to: 'good' });
+        } catch (err) {
+          item.name = name; // file masih di folder Bagus
+          throw err;
+        }
       })
-      .catch((err) => toast(`Undo gagal: ${err.message}`));
-  } else if (st === 'kept') {
-    S.count.kept--;
+      .then(() => status && api('/api/mark', { s: sid, f: item.f, status }))
+      .catch((err) => {
+        toast(`Gagal mengembalikan ${item.f}: ${err.message}`);
+        if (S.id === sid && item.name && item.status !== 'good') {
+          item.status = 'good';
+          render();
+        }
+      });
+  } else {
+    item.p = item.p
+      .then(() => api('/api/mark', { s: sid, f: item.f, status }))
+      .catch((err) => toast(`Gagal menyimpan pilihan ${item.f}: ${err.message}`));
   }
-  item.status = null;
-  S.i = idx;
-  flash('Undo', 'undo');
-  render(-1);
+  updateNode(k);
+}
+
+// status: 'good' atau 'kept'; dir: arah animasi ('good', 'left' untuk ←, 'kept' untuk ↓)
+function decide(status, dir, from) {
+  if (S.i >= S.files.length) return;
+  const k = S.i;
+  S.history.push([{ k, prev: S.files[k].status }]);
+  setStatus(k, status);
+  S.i = nextInView(k);
+  slideOut(dir, from);
+  flash(status === 'good' ? 'Bagus 👍' : 'Dilewati', status === 'good' ? 'good' : 'keep');
+  stripTouched = 0;
+  render();
+  enter({ transform: 'scale(.97)', opacity: 0 });
+}
+
+const moveGood = (from) => decide('good', 'good', from);
+const skip = (dir = 'kept', from) => decide('kept', dir, from);
+
+// Satu langkah bisa berisi beberapa foto (mode bandingkan seri).
+function undo() {
+  const step = S.history.pop();
+  if (!step) return;
+  const st = S.files[step[0].k].status; // kembali dari arah perginya
+  for (const { k, prev } of step) setStatus(k, prev);
+  if (S.pos[step[0].k] < 0) applyFilter('all');
+  S.i = step[0].k;
+  flash(step.length > 1 ? `${step.length} pilihan dibatalkan` : 'Dibatalkan', 'undo');
+  stripTouched = 0;
+  render();
   enter({ transform: OUT[st] || 'scale(.97)', opacity: 0 });
 }
 
-// Kalau gambar gagal dimuat (mis. undo belum selesai), coba sekali lagi setelah operasi file beres.
+// Kalau gambar gagal dimuat (mis. pemindahan belum selesai), coba sekali lagi setelah operasi file beres.
 $('photo').addEventListener('error', () => {
   if (!S || S.retried || S.i >= S.files.length) return;
   S.retried = true;
@@ -415,94 +822,556 @@ $('photo').addEventListener('error', () => {
   });
 });
 
+$('resumeBtn').addEventListener('click', (e) => {
+  goTo(firstUndecided());
+  e.currentTarget.blur();
+});
+
+// ---------- Geser (swipe): sentuh / mouse di foto, dua jari di trackpad ----------
+const drag = { id: null, x: 0, y: 0, dx: 0, dy: 0, moving: false, onPhoto: false };
+
+$('frame').addEventListener('pointerdown', (e) => {
+  if (!S || S.i >= S.files.length || e.button > 0 || Z.on) return;
+  // onPhoto dicatat di sini: setelah pointer capture, target pointerup selalu #frame.
+  Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0, moving: false, onPhoto: e.target === $('photo') });
+  $('frame').setPointerCapture(e.pointerId);
+});
+
+$('frame').addEventListener('pointermove', (e) => {
+  if (e.pointerId !== drag.id) return;
+  drag.dx = e.clientX - drag.x;
+  drag.dy = e.clientY - drag.y;
+  if (!drag.moving && Math.abs(drag.dx) > 8 && Math.abs(drag.dx) > Math.abs(drag.dy)) drag.moving = true;
+  if (!drag.moving) return;
+  const photo = $('photo');
+  photo.getAnimations().forEach((a) => a.cancel());
+  photo.style.transform = `translateX(${drag.dx}px) rotate(${drag.dx / 25}deg)`;
+  const b = $('badge');
+  b.textContent = drag.dx > 0 ? 'Bagus 👍' : 'Lewati';
+  b.className = drag.dx > 0 ? 'good' : 'keep';
+  b.style.opacity = Math.min(1, Math.abs(drag.dx) / SWIPE_PX);
+});
+
+function endDrag(e, cancelled) {
+  if (e.pointerId !== drag.id) return;
+  drag.id = null;
+  const photo = $('photo');
+  const from = photo.style.transform || 'none';
+  photo.style.transform = '';
+  $('badge').style.opacity = '';
+  if (drag.moving) {
+    if (!cancelled && drag.dx > SWIPE_PX) moveGood(from);
+    else if (!cancelled && drag.dx < -SWIPE_PX) skip('left', from);
+    else if (!reduceMotion) photo.animate([{ transform: from }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+  } else if (!cancelled && Math.hypot(drag.dx, drag.dy) < 6 && drag.onPhoto) {
+    zoomOpen(e.clientX, e.clientY);
+  }
+}
+$('frame').addEventListener('pointerup', (e) => endDrag(e, false));
+$('frame').addEventListener('pointercancel', (e) => endDrag(e, true));
+
+// Trackpad: dua jari ke kanan = bagus, ke kiri = lewati. Satu gerakan = satu foto.
+const wheel = { acc: 0, locked: false, timer: 0 };
+$('stage').addEventListener('wheel', (e) => {
+  if (!S || Z.on || !$('compare').hidden || S.i >= S.files.length) return;
+  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+  e.preventDefault(); // cegah "kembali ke halaman sebelumnya" milik browser
+  clearTimeout(wheel.timer);
+  wheel.timer = setTimeout(() => { wheel.acc = 0; wheel.locked = false; }, 220);
+  if (wheel.locked) return;
+  wheel.acc += e.deltaX;
+  if (wheel.acc < -WHEEL_SWIPE) { wheel.locked = true; moveGood(); }
+  else if (wheel.acc > WHEEL_SWIPE) { wheel.locked = true; skip('left'); }
+}, { passive: false });
+
+// ---------- Zoom (100% untuk cek ketajaman) ----------
+// Mouse: foto mengikuti posisi kursor. Sentuh: geser untuk menjelajah. Klik / ketuk = keluar.
+const Z = { on: false, k: -1, scale: 1, nat: [0, 0], px: 0.5, py: 0.5, drag: null, frame: 0 };
+let lastPointer = null;
+$('stage').addEventListener('pointermove', (e) => { lastPointer = [e.clientX, e.clientY]; }, { passive: true });
+
+function zoomOpen(cx, cy) {
+  if (!S || S.i >= S.files.length) return;
+  const r = $('stage').getBoundingClientRect();
+  Z.px = cx === undefined ? 0.5 : Math.min(1, Math.max(0, (cx - r.left) / r.width));
+  Z.py = cy === undefined ? 0.5 : Math.min(1, Math.max(0, (cy - r.top) / r.height));
+  Z.on = true;
+  Z.k = S.i;
+  const img = $('zoomImg');
+  img.hidden = true;
+  $('zoom').hidden = false;
+  $('zoomInfo').textContent = 'Memuat ukuran asli…';
+  img.onload = () => {
+    if (!Z.on || Z.k !== S.i) return;
+    Z.nat = [img.naturalWidth, img.naturalHeight];
+    Z.scale = 1;
+    img.hidden = false;
+    zoomLayout();
+  };
+  img.onerror = () => { $('zoomInfo').textContent = 'Foto gagal dimuat'; };
+  img.src = zoomUrl(S.i);
+}
+
+function zoomClose() {
+  Z.on = false;
+  $('zoom').hidden = true;
+  $('zoomImg').removeAttribute('src');
+}
+
+function zoomFit() {
+  const ov = $('zoom');
+  return Math.min(1, ov.clientWidth / Z.nat[0], ov.clientHeight / Z.nat[1]);
+}
+
+function zoomLayout() {
+  Z.frame = 0;
+  if (!Z.on || !Z.nat[0]) return;
+  const ov = $('zoom');
+  const W = ov.clientWidth;
+  const H = ov.clientHeight;
+  const w = Z.nat[0] * Z.scale;
+  const h = Z.nat[1] * Z.scale;
+  const x = w > W ? -Z.px * (w - W) : (W - w) / 2;
+  const y = h > H ? -Z.py * (h - H) : (H - h) / 2;
+  const img = $('zoomImg');
+  img.style.width = `${w}px`;
+  img.style.height = `${h}px`;
+  img.style.transform = `translate(${x}px, ${y}px)`;
+  const tip = matchMedia('(pointer: coarse)').matches ? 'geser untuk menjelajah · ketuk untuk keluar' : 'gerakkan mouse · klik / Spasi untuk keluar · scroll untuk zoom';
+  $('zoomInfo').textContent = `🔍 ${Math.round(Z.scale * 100)}% · ${tip}`;
+}
+const zoomSoon = () => { if (!Z.frame) Z.frame = requestAnimationFrame(zoomLayout); };
+
+$('zoom').addEventListener('pointerdown', (e) => {
+  Z.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, touch: e.pointerType !== 'mouse' };
+  $('zoom').setPointerCapture(e.pointerId);
+});
+$('zoom').addEventListener('pointermove', (e) => {
+  if (!Z.on || !Z.nat[0]) return;
+  const ov = $('zoom');
+  if (Z.drag?.touch && e.pointerId === Z.drag.id) {
+    const w = Z.nat[0] * Z.scale - ov.clientWidth;
+    const h = Z.nat[1] * Z.scale - ov.clientHeight;
+    if (w > 0) Z.px = Math.min(1, Math.max(0, Z.px - (e.clientX - Z.drag.x) / w));
+    if (h > 0) Z.py = Math.min(1, Math.max(0, Z.py - (e.clientY - Z.drag.y) / h));
+    Z.drag.x = e.clientX;
+    Z.drag.y = e.clientY;
+  } else if (e.pointerType === 'mouse') {
+    const r = ov.getBoundingClientRect();
+    Z.px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    Z.py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+  } else return;
+  zoomSoon();
+});
+$('zoom').addEventListener('pointerup', (e) => {
+  const d = Z.drag;
+  Z.drag = null;
+  if (d && e.pointerId === d.id && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 6) zoomClose();
+});
+$('zoom').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!Z.nat[0]) return;
+  const factor = Math.exp(-Math.max(-60, Math.min(60, e.deltaY)) / 300);
+  Z.scale = Math.min(4, Math.max(zoomFit(), Z.scale * factor));
+  zoomSoon();
+}, { passive: false });
+addEventListener('resize', () => { if (Z.on) zoomSoon(); });
+
+// ---------- Bandingkan seri ----------
+const C = { group: null, picked: null };
+
+function openCompare() {
+  const group = S.i < S.files.length && burstAt(S.i);
+  if (!group) return;
+  zoomClose();
+  C.group = group;
+  C.picked = new Set(group.filter((k) => S.files[k].status === 'good'));
+  $('cmpTitle').textContent = `Seri ${group.length} foto — pilih yang bagus`;
+  $('cmpGrid').replaceChildren(...group.map((k, j) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.k = k;
+    cell.innerHTML = `<img alt="" loading="lazy" decoding="async" draggable="false"><span class="n">${j + 1}</span><span class="tick">👍 bagus</span>`;
+    cell.querySelector('img').src = imgUrl(k);
+    cell.classList.toggle('picked', C.picked.has(k));
+    return cell;
+  }));
+  $('compare').hidden = false;
+  $('cmpGrid').scrollTop = 0;
+}
+
+function toggleCompare(k) {
+  if (C.picked.has(k)) C.picked.delete(k);
+  else C.picked.add(k);
+  $('cmpGrid').querySelector(`[data-k="${k}"]`)?.classList.toggle('picked', C.picked.has(k));
+}
+
+function closeCompare() {
+  $('compare').hidden = true;
+  C.group = null;
+}
+
+function saveCompare() {
+  const group = C.group;
+  if (!group) return;
+  S.history.push(group.map((k) => ({ k, prev: S.files[k].status })));
+  for (const k of group) setStatus(k, C.picked.has(k) ? 'good' : 'kept');
+  const good = C.picked.size;
+  closeCompare();
+  S.i = nextInView(group[group.length - 1]);
+  flash(`${good} bagus, ${group.length - good} dilewati`, good ? 'good' : 'keep');
+  stripTouched = 0;
+  render();
+}
+
+$('burstBtn').addEventListener('click', (e) => { openCompare(); e.currentTarget.blur(); });
+$('cmpGrid').addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (cell) toggleCompare(Number(cell.dataset.k));
+});
+$('cmpCancel').addEventListener('click', closeCompare);
+$('cmpSave').addEventListener('click', saveCompare);
+$('cmpAll').addEventListener('click', () => {
+  const all = C.picked.size === C.group.length;
+  for (const k of C.group) if (all === C.picked.has(k)) toggleCompare(k);
+});
+
+// ---------- Panduan singkat ----------
+function showHelp() {
+  $('help').hidden = false;
+  $('helpOk').focus();
+}
+
+function hideHelp() {
+  $('help').hidden = true;
+  storage('sp.helped', '1');
+}
+
+$('helpBtn').addEventListener('click', showHelp);
+$('helpOk').addEventListener('click', hideHelp);
+
 document.addEventListener('keydown', (e) => {
-  if (!S || $('viewer').hidden) return;
   const k = e.key;
-  if (k === 'ArrowRight' || k === 'ArrowLeft') {
+  if (!$('waiting').hidden) {
+    if (k === 'Escape') cancelPick();
+    return;
+  }
+  if (!$('picker').hidden) {
+    if (k === 'Escape') closePicker();
+    return;
+  }
+  if (!S || $('viewer').hidden || e.target.tagName === 'SELECT') return;
+  if (!$('help').hidden) {
+    if (k === 'Enter' || k === 'Escape' || k === ' ' || k.startsWith('Arrow')) {
+      e.preventDefault();
+      hideHelp();
+    }
+    return;
+  }
+  if (!$('compare').hidden) {
+    if (k === 'Escape') closeCompare();
+    else if (k === 'Enter') saveCompare();
+    else if (/^[1-9]$/.test(k) && C.group[k - 1] !== undefined) toggleCompare(C.group[k - 1]);
+    else return;
     e.preventDefault();
-    if (!e.repeat) move(k === 'ArrowRight' ? 'good' : 'bad'); // tahan tombol tidak memindah banyak foto sekaligus
-  } else if (k === 'ArrowDown') {
+    return;
+  }
+  if (k === ' ') {
     e.preventDefault();
-    skip();
+    if (!e.repeat) Z.on ? zoomClose() : zoomOpen(...(lastPointer || []));
+    return;
+  }
+  if (Z.on && k === 'Escape') {
+    e.preventDefault();
+    zoomClose();
+    return;
+  }
+  if (k === 'ArrowRight') {
+    e.preventDefault();
+    if (!e.repeat) moveGood(); // tahan tombol tidak memindah banyak foto sekaligus
+  } else if (k === 'ArrowLeft' || k === 'ArrowDown') {
+    e.preventDefault();
+    skip(k === 'ArrowLeft' ? 'left' : 'kept');
   } else if (k === 'ArrowUp' || ((e.metaKey || e.ctrlKey) && k.toLowerCase() === 'z')) {
     e.preventDefault();
     if (!e.repeat) undo();
   } else if (k === 'Escape') {
     e.preventDefault();
     showSetup();
+  } else if (k === 'b' || k === 'B') {
+    openCompare();
+  } else if (k === '?' || k === 'h') {
+    showHelp();
   }
 });
 
 $('foot').addEventListener('click', (e) => {
   const act = e.target.closest('button')?.dataset.act;
-  if (act === 'good' || act === 'bad') move(act);
-  else if (act === 'skip') skip();
+  if (act === 'good') moveGood();
+  else if (act === 'skip') skip('left');
   else if (act === 'undo') undo();
   e.target.blur();
 });
 
 $('homeBtn').addEventListener('click', showSetup);
+$('doneHome').addEventListener('click', showSetup);
+$('showAll').addEventListener('click', () => applyFilter('all', false));
+$('openGood').addEventListener('click', () => {
+  api('/api/open', { src: S.src, which: 'good' }).catch((err) => toast(err.message));
+});
 
-function showSetup() {
-  storage('sp.active', '0');
+async function showSetup() {
+  storage('sp.active', '');
+  zoomClose();
+  closeCompare();
   $('viewer').hidden = true;
   $('setup').hidden = false;
-  $('src').focus();
+  $('pickBtn').focus();
+  // Tunggu pemindahan terakhir tersimpan supaya angka di daftar proyek akurat.
+  if (S) await Promise.all(S.files.map((x) => x.p));
+  refreshProjects();
 }
 
-$('form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = $('startBtn');
-  btn.disabled = true;
-  btn.textContent = 'Memindai…';
-  $('error').textContent = '';
-  const src = $('src').value;
-  const good = $('goodInput').value;
-  const bad = $('badInput').value;
-  const recursive = $('recursive').checked;
+// ---------- Daftar proyek ----------
+let canOpen = true; // dari server: jendela pilih folder & "Buka folder" ada di macOS dan Windows
+let home = '';
+let sep = '/';
+const under = (p, parent) => p === parent || p.startsWith(parent.endsWith(sep) ? parent : parent + sep);
+const shortPath = (p) => (home && p !== home && under(p, home) ? `~${p.slice(home.length)}` : p);
+
+async function refreshProjects() {
+  let data;
   try {
-    const r = await api('/api/start', { src, good, bad, recursive });
-    storage('sp.src', src);
-    storage('sp.good', good);
-    storage('sp.bad', bad);
-    storage('sp.recursive', recursive ? '1' : '0');
+    data = await api('/api/projects');
+  } catch {
+    return;
+  }
+  canOpen = data.canOpen;
+  home = data.home;
+  sep = data.sep || '/';
+  $('projects').replaceChildren(...data.projects.map(projectCard));
+  $('projectsTitle').hidden = !data.projects.length;
+}
+
+function projectCard(p) {
+  const el = document.createElement('div');
+  el.className = 'proj';
+  el.innerHTML = `<div class="pinfo"><div class="pname"></div><div class="ppath"></div><div class="pbar"><i></i></div><div class="pstat"></div></div>
+    <div class="pact">
+      <button type="button" data-act="open"></button>
+      <button type="button" class="secondary" data-act="finder" title="Lihat isi folder Bagus">Buka folder Bagus</button>
+      <button type="button" class="secondary" data-act="forget" title="Hapus dari daftar (foto tidak ikut terhapus)">✕</button>
+    </div>`;
+  const q = (sel) => el.querySelector(sel);
+  const openBtn = q('[data-act=open]');
+  q('.pname').textContent = p.name;
+  q('.ppath').textContent = shortPath(p.src);
+  q('[data-act=finder]').hidden = !canOpen || p.missing;
+
+  if (p.missing) {
+    el.classList.add('missing');
+    q('.pbar').hidden = true;
+    q('.pstat').textContent = 'Folder tidak ditemukan — mungkin dipindah, diganti nama, atau hardisk-nya belum dicolok.';
+    openBtn.textContent = 'Mulai';
+    openBtn.disabled = true;
+  } else {
+    const { left, skipped, good } = p.count;
+    const total = left + skipped + good;
+    q('.pbar i').style.width = total ? `${((skipped + good) / total) * 100}%` : '0';
+    q('.pstat').textContent = left
+      ? `${left} belum dilihat · ${good} bagus`
+      : `Selesai ✓ · ${good} bagus`;
+    openBtn.textContent = left ? (skipped + good ? 'Lanjutkan' : 'Mulai') : 'Lihat lagi';
+  }
+
+  openBtn.addEventListener('click', () => startSession(p, openBtn, { restart: !p.missing && !p.count.left }));
+  q('[data-act=finder]').addEventListener('click', () => {
+    api('/api/open', { src: p.src, which: 'good' }).catch((err) => toast(err.message));
+  });
+  q('[data-act=forget]').addEventListener('click', async () => {
+    const msg = `Hapus "${p.name}" dari daftar?\n\nFoto dan folder di komputer TIDAK dihapus. Hanya catatan tanda bagus/dilewati proyek ini yang dihapus.`;
+    if (!confirm(msg)) return;
+    await api('/api/forget', { src: p.src }).catch((err) => toast(err.message));
+    refreshProjects();
+  });
+  return el;
+}
+
+// ---------- Pilih folder ----------
+let pkDir = null;
+
+async function browse(dir) {
+  let r;
+  try {
+    r = await api(`/api/browse${dir ? `?path=${encodeURIComponent(dir)}` : ''}`);
+  } catch (err) {
+    toast(err.message);
+    return;
+  }
+  pkDir = r.path;
+  $('pkPathText').textContent = shortPath(r.path); // <bdi>: ellipsis di kiri tanpa membalik tanda baca
+  $('pkPath').title = r.path;
+  $('pkUp').disabled = !r.parent;
+  $('pkUp').dataset.path = r.parent || '';
+  $('places').replaceChildren(...r.places.map((p) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'secondary';
+    b.classList.toggle('on', r.path === p.path || (under(r.path, p.path) && p.path !== home));
+    b.textContent = `${p.drive ? '💾' : p.path === home ? '🏠' : '📁'} ${p.name}`;
+    b.onclick = () => browse(p.path);
+    return b;
+  }));
+  const list = $('pkList');
+  if (!r.dirs.length) {
+    list.innerHTML = '<p>Tidak ada subfolder di sini.</p>';
+  } else {
+    list.replaceChildren(...r.dirs.map((d) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = '📁 <span></span>';
+      b.querySelector('span').textContent = d.name;
+      b.onclick = () => browse(d.path);
+      return b;
+    }));
+  }
+  list.scrollTop = 0;
+  $('pkInfo').innerHTML = r.photos
+    ? `Folder ini berisi <b>${r.photos}</b> foto`
+    : 'Tidak ada foto langsung di folder ini';
+}
+
+// note: alasan daftar ini dipakai sebagai ganti jendela pilih folder
+function openPicker(note = '') {
+  $('pkNote').textContent = note;
+  $('picker').hidden = false;
+  browse(pkDir);
+}
+
+function closePicker() {
+  $('picker').hidden = true;
+  $('pickBtn').focus();
+}
+
+// Dibuka dari perangkat lain (mis. HP): jendela pilih folder akan muncul di komputer, bukan di sini.
+const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+if (IS_WIN_CLIENT) {
+  $('waitBtnName').textContent = 'OK';
+  $('waitKeys').innerHTML = '<kbd>Alt</kbd> + <kbd>Tab</kbd>';
+}
+
+async function pickFolder() {
+  $('error').textContent = '';
+  if (!canOpen || !isLocal) return openPicker();
+  $('waiting').hidden = false;
+  let r;
+  try {
+    r = await api('/api/pick', {});
+  } catch (err) {
+    $('waiting').hidden = true;
+    return openPicker(`${err.message}. Pilih folder dari daftar ini saja.`);
+  }
+  $('waiting').hidden = true;
+  if (r.path) await startWithFolder(r.path);
+}
+
+function cancelPick() {
+  api('/api/pick-cancel', {}).catch(() => {});
+}
+
+async function startWithFolder(dir) {
+  const btn = $('pickBtn');
+  const label = btn.textContent;
+  btn.textContent = 'Memindai foto…';
+  btn.disabled = true;
+  await startSession({ src: dir });
+  btn.textContent = label;
+  btn.disabled = false;
+}
+
+$('pickBtn').addEventListener('click', pickFolder);
+$('pickCancel').addEventListener('click', cancelPick);
+$('pkUp').addEventListener('click', () => browse($('pkUp').dataset.path));
+$('picker').addEventListener('click', (e) => {
+  if (e.target === $('picker') || e.target.closest('[data-close]')) closePicker();
+});
+$('pkChoose').addEventListener('click', () => {
+  closePicker();
+  startWithFolder(pkDir);
+});
+
+// ---------- Mulai sesi ----------
+// params: { src, good?, recursive? } — yang kosong diisi server.
+// restart: mulai lagi dari foto pertama (proyek yang sudah selesai dilihat).
+async function startSession(params, btn, { restart = false, resuming = false } = {}) {
+  const label = btn?.textContent;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Memindai foto…';
+  }
+  $('error').textContent = '';
+  try {
+    const r = await api('/api/start', { src: params.src, good: params.good, recursive: params.recursive });
     cache.clear();
-    stripNodes.clear();
-    const start = resumeIndex(r.files, storage(lastKey(r.src)));
+    zoomClose();
+    closeCompare();
     S = {
       id: r.id,
       src: r.src,
-      files: r.files.map((f) => ({ f, status: null, name: null, p: Promise.resolve() })),
-      i: start,
-      history: [],
-      count: { good: 0, bad: 0, kept: 0 },
+      canZoomConvert: r.canZoomConvert,
+      // status: null (belum dipilih) | 'good' | 'kept'; name: nama file di folder Bagus;
+      // extra: jumlah file pendamping (RAW/XMP) yang ikut dipindah
+      files: r.files.map((x) => ({ f: x.f, status: x.status, name: x.name || null, extra: x.extra || 0, p: Promise.resolve() })),
+      i: 0,
+      prevCur: -1,
+      history: [],         // tiap langkah: [{ k, prev }] — status sebelum dipilih, untuk Batalkan
+      meta: new Array(r.files.length), // info EXIF per foto (undefined = belum diambil)
+      metaReq: new Set(),
+      filter: 'all',
+      view: [],
+      pos: null,
       retried: false,
     };
-    storage('sp.active', '1');
+    $('filter').value = 'all';
+    buildView();
+    S.i = restart ? 0 : firstUndecided();
+    $('pname').textContent = r.name;
     $('dstGood').textContent = r.dst.good;
-    $('dstBad').textContent = r.dst.bad;
+    $('openGood').hidden = !canOpen;
+    $('help').hidden = true;
     $('setup').hidden = true;
     $('viewer').hidden = false;
+    $('strip').scrollTop = 0;
+    $('strip').scrollLeft = 0;
+    stripTouched = 0;
+    layoutStrip();
     render();
-    if (start > 0 && start < r.files.length) flash(`Lanjut dari foto ${start + 1}`, 'keep');
-    if (r.duplicates) toast(`${r.duplicates} foto duplikat dilewati (sudah ada di Bagus/Jelek atau salinan ganda)`, 'info');
+    storage('sp.active', JSON.stringify({ src: r.src, good: r.dst.good, recursive: r.recursive }));
+    const start = S.i;
+    if (storage('sp.helped') !== '1' && r.files.length) showHelp();
+    else if (start > 0 && start < r.files.length) flash(`Lanjut dari foto ${start + 1}`, 'keep');
+    if (!resuming && start === 0 && !r.files.some((x) => x.status)) toast(`Foto bagus akan dipindah ke folder "${shortPath(r.dst.good)}"`, 'info');
+    if (r.duplicates) toast(`${r.duplicates} foto kembar dilewati (sudah ada di folder Bagus atau salinan ganda)`, 'info');
   } catch (err) {
+    if (resuming) storage('sp.active', '');
     $('error').textContent = err.message;
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Mulai';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
   }
-});
-
-$('src').value = storage('sp.src') || '';
-$('goodInput').value = storage('sp.good') || storage('sp.dst') || ''; // sp.dst: folder tujuan versi lama
-$('badInput').value = storage('sp.bad') || '';
-$('recursive').checked = storage('sp.recursive') !== '0';
-$('src').focus();
-// Reload saat sedang menyortir: langsung masuk lagi ke posisi terakhir.
-if (storage('sp.active') === '1' && $('src').value && $('goodInput').value && $('badInput').value) {
-  $('form').requestSubmit();
 }
+
+$('pickBtn').focus();
+refreshProjects();
+// Reload saat sedang memilih: langsung masuk lagi ke posisi terakhir.
+let active = null;
+try {
+  active = JSON.parse(storage('sp.active') || 'null');
+} catch {}
+if (active?.src) startSession(active, null, { resuming: true });
 </script>
 </body>
 </html>
