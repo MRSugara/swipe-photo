@@ -1,0 +1,12 @@
+{
+  "name": "swipe-photo",
+  "private": true,
+  "description": "Pilih foto bagus dari folder lokal dengan cepat, langsung dari browser. Tanpa dependency.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  }
+}
